@@ -6,6 +6,7 @@ physionet.org/
 # Project data directories
 clustering_output/data/
 prediction_output/data/
+prediction_output/result/models/
 
 # =====================
 # Python environments
