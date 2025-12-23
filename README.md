@@ -66,9 +66,9 @@ pip install pandas numpy scikit-learn xgboost umap-learn shap matplotlib seaborn
 ### Data Setup
 
 1. **Obtain MIMIC-IV access**:
-   - Complete CITI training: https://physionet.org/about/citi-course/
-   - Request access: https://physionet.org/content/mimiciv/
-   - Download MIMIC-IV v3.1
+  - Request access: https://physionet.org/content/mimiciv/
+  - Complete CITI training: https://physionet.org/about/citi-course/
+  - Download MIMIC-IV v3.1
 
 2. **Update path**:
    ```python
@@ -259,27 +259,37 @@ Output: prediction_output/result/interpretation/beeswarm_*.png, heatmap_*.png, g
 
 ---
 
-### Outcome Prediction
+### Prediction Performance
 
-* **Best Model**: Random Forest
-* **Performance**: 
+**Best Model**: Random Forest
+
+**Test Set Performance**:
+
 | Outcome | ROC-AUC | PR-AUC | F1 Score |
 |---------|---------|--------|----------|
-| **Severe AKI** | 0.876803 | 0.881837 | 0.743236 |
-| **Progression** | 0.895576 | 0.867240 | 0.737179 |
-| **Mortality** | 0.826931 | 0.670622 | 0.503080 |
-| **Prolonged ICU** | 0.791070 | 0.674411 | 0.503817 |
-* **SHAP Analysis**:
-  - Mortality: Mean Respiratory Rate(+), BUN/Creatinine Ratio(+), Minimum Lactate(+), Mean Platelet Count(+)
-  - Progression: Mean Creatinine(+), BUN/Creatinine Ratio(+), Mean Blood Urea Nitrogen(+)
-  - Prolonged ICU: Mean Respiratory Rate(+), Has Arterial Blood Gas Measured(+), Mean Temperature(+)
-  - Severe AKI: Mean Creatinine(+), Creatinine Fold Change(+), BUN/Creatinine Ratio(+), Mean Blood Urea Nitrogen(+)
-* **Key Patterns**L
+| Severe AKI | 0.877 | 0.882 | 0.743 |
+| Progression | 0.896 | 0.867 | 0.737 |
+| Mortality | 0.827 | 0.671 | 0.503 |
+| Prolonged ICU | 0.791 | 0.674 | 0.504 |
+
+---
+
+### SHAP Feature Interpretation
+
+**Top Predictive Features by Outcome** (+ indicates positive correlation):
+
+- **Mortality**: Mean Respiratory Rate(+), BUN/Creatinine Ratio(+), Minimum Lactate(+), Mean Platelet Count(+)
+- **Progression**: Mean Creatinine(+), BUN/Creatinine Ratio(+), Mean Blood Urea Nitrogen(+)
+- **Prolonged ICU**: Mean Respiratory Rate(+), Has Arterial Blood Gas Measured(+), Mean Temperature(+)
+- **Severe AKI**: Mean Creatinine(+), Creatinine Fold Change(+), BUN/Creatinine Ratio(+), Mean Blood Urea Nitrogen(+)
+
+**Key Patterns**:
+
 | Theme | Features | Outcomes Affected |
 |-------|----------|-------------------|
-| **Renal dysfunction** | Creatinine, BUN, BUN/Cr ratio, fold-change | Severe AKI, Progression |
-| **Systemic illness** | Respiratory rate, lactate, temperature | Mortality, Prolonged ICU |
-| **Illness acuity** | ABG measured (proxy for severity) | Prolonged ICU |
+| Renal dysfunction | Creatinine, BUN, BUN/Cr ratio, fold-change | Severe AKI, Progression |
+| Systemic illness | Respiratory rate, lactate, temperature | Mortality, Prolonged ICU |
+| Illness acuity | ABG measured (proxy for severity) | Prolonged ICU |
 
 ---
 
