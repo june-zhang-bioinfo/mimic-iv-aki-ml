@@ -70,9 +70,9 @@ pip install pandas numpy scikit-learn xgboost umap-learn shap matplotlib seaborn
    - Request access: https://physionet.org/content/mimiciv/
    - Download MIMIC-IV v3.1
 
-2. **Update configuration**:
+2. **Update path**:
    ```python
-   # In each script (Untitled-1.py, Untitled-4.py), update:
+   # In notebooks, update:
    MIMIC_PATH = "/path/to/your/mimiciv/3.1"
    OUTPUT_DIR = "/path/to/output"
    ```
@@ -202,7 +202,7 @@ Random seed: 42 (reproducibility)
 We trained multiple baseline and non-linear models (logistic regression, random forest, XGBoost, and MLP).
 Hyperparameters were optimized on a validation set using grid or random search, with **ROC-AUC as the primary
 selection criterion**. XGBoost models were trained **separately for each outcome**.
-Full hyperparameter search spaces and tuning strategies are documented in `docs/model_tuning.md`.
+Full hyperparameter search spaces and tuning strategies are documented in `model_tuning.md`.
 
 ---
 
@@ -210,9 +210,9 @@ Full hyperparameter search spaces and tuning strategies are documented in `docs/
 
 #### Feature Importance
 - **Tree-based models**: Gain-based importance (average impurity reduction)
-- **Ranking**: Top 20 features by average importance
+- **Ranking**: Top features by average importance
 - **Validation**: Cross-check consistency between Random Forest and XGBoost
-- **Output**: `output/xgb_feature_importance.csv`
+- **Output**: prediction_output/result/xgb_feature_importance.csv`
 
 
 #### SHAP (SHapley Additive exPlanations)
@@ -227,7 +227,7 @@ Analysis per outcome:
 └── Interpretation: Bidirectional effects revealed
     (e.g., high lactate → increased risk, low MAP → increased risk)
 
-Output: output/interpretation/beeswarm_*.png, heatmap_*.png, gain_*.png
+Output: prediction_output/result/interpretation/beeswarm_*.png, heatmap_*.png, gain_*.png
 ```
 
 ---
@@ -239,24 +239,47 @@ Output: output/interpretation/beeswarm_*.png, heatmap_*.png, gain_*.png
 
 * **Identified Phenotypes**: *2* major distinct AKI phenotypes
 * **Clustering Quality**:
-  - Silhouette Score: `[CHECK: output/clustering_metrics.csv - Silhouette Score]`  
-  - Davies-Bouldin Index: `[CHECK: output/clustering_metrics.csv - Davies-Bouldin Index]`  
-  - Calinski-Harabasz Score: `[CHECK: output/clustering_metrics.csv - Calinski-Harabasz Score]`
-* **Top differentiators**:
+  - Silhouette Score: 0.321
+  - Davies-Bouldin Index: 1.139
+  - Calinski-Harabasz Score: 10060.729
+* **Top differentiators**: 
+  - higher in cluster1: Mean Bilirubin, Minimum Lactate,Mean Temperature, Mean Lactate
+  - higher in cluster3: Mean Bicarbonate, Mean Platelet Count, Std Dev of Heart Rate, Mean White Blood Cell Count, Mean Blood Urea Nitrogen 
+* **Interpretation**:
+  - Cluster 1: Shock/Multi-Organ Dysfunction
+    ↑ Bilirubin (liver dysfunction)
+    ↑ Lactate (tissue hypoperfusion/shock)
+    ↑ Temperature (systemic inflammation)
+  - Cluster 3: Inflammatory/Prerenal
+    ↑ Bicarbonate (better metabolic compensation)
+    ↑ Platelets (preserved hematologic function)
+    ↑ WBC (active infection/inflammation)
+    ↑ BUN (prerenal azotemia)
+    ↑ HR variability (hemodynamic fluctuation)
 
 ---
 
 ### Outcome Prediction
 
-* **Best Model**: Gradient-boosted trees (XGBoost)
+* **Best Model**: Random Forest
 * **Performance**: 
 | Outcome | ROC-AUC | PR-AUC | F1 Score |
 |---------|---------|--------|----------|
-| **Severe AKI** | `[Test_ROC_AUC]` | `[Test_PR_AUC]` | `[Test_F1]` |
-| **Progression** | `[Test_ROC_AUC]` | `[Test_PR_AUC]` | `[Test_F1]` |
-| **Mortality** | `[Test_ROC_AUC]` | `[Test_PR_AUC]` | `[Test_F1]` |
-| **Prolonged ICU** | `[Test_ROC_AUC]` | `[Test_PR_AUC]` | `[Test_F1]` |
+| **Severe AKI** | 0.876803 | 0.881837 | 0.743236 |
+| **Progression** | 0.895576 | 0.867240 | 0.737179 |
+| **Mortality** | 0.826931 | 0.670622 | 0.503080 |
+| **Prolonged ICU** | 0.791070 | 0.674411 | 0.503817 |
 * **SHAP Analysis**:
+  - Mortality: Mean Respiratory Rate(+), BUN/Creatinine Ratio(+), Minimum Lactate(+), Mean Platelet Count(+)
+  - Progression: Mean Creatinine(+), BUN/Creatinine Ratio(+), Mean Blood Urea Nitrogen(+)
+  - Prolonged ICU: Mean Respiratory Rate(+), Has Arterial Blood Gas Measured(+), Mean Temperature(+)
+  - Severe AKI: Mean Creatinine(+), Creatinine Fold Change(+), BUN/Creatinine Ratio(+), Mean Blood Urea Nitrogen(+)
+* **Key Patterns**L
+| Theme | Features | Outcomes Affected |
+|-------|----------|-------------------|
+| **Renal dysfunction** | Creatinine, BUN, BUN/Cr ratio, fold-change | Severe AKI, Progression |
+| **Systemic illness** | Respiratory rate, lactate, temperature | Mortality, Prolonged ICU |
+| **Illness acuity** | ABG measured (proxy for severity) | Prolonged ICU |
 
 ---
 
@@ -264,95 +287,30 @@ Output: output/interpretation/beeswarm_*.png, heatmap_*.png, gain_*.png
 
 ➡️ Full quantitative tables, per-outcome metrics, and statistical tests are provided in:
 
-* `output/clustering_metrics.csv`
-* `output/cluster_summary.csv`
-* `output/cluster_heatmap.png`
-* `output/model_comparison.csv`
-* `output/*_roc_curves_val.png`
+* `clustering_output/result/clustering_metrics.csv`
+* `clustering_output/result/cluster_summary.csv`
+* `clustering_output/result/output/cluster_heatmap.png`
+* `prediction_output/result/model_comparison.csv`
+* `prediction_output/result/*_roc_curves_val.png`
+* `prediction_output/result/interpretation/`
 
 ---
-
-### Clustering Insights
-
-**Beyond KDIGO Staging**:
-- Phenotypes cut across severity grades → distinct pathophysiology beyond creatinine
-- `[Cluster X]` has `[%]` Stage 1 but `[high/low]` mortality → severity ≠ outcome
-
-**Actionable Stratification** (examples to customize based on your clusters):
-- **Cluster with shock phenotype** → Early vasopressor optimization, consider early RRT
-- **Cluster with multi-organ dysfunction** → Goals of care discussion, ICU resource planning
-- **Cluster with stable hemodynamics** → Conservative fluid management, avoid nephrotoxins
-
-**Research Applications**:
-- **Clinical trial enrichment**: Homogeneous subgroups for targeted interventions
-- **Comparative effectiveness**: Treatment heterogeneity by phenotype
-- **Biomarker discovery**: Phenotype-specific molecular signatures
-
----
-
-### Prediction Utility
-
-**Early Warning System**:
-- 24-hour lead time enables proactive intervention before AKI onset
-- Risk scores can trigger automated alerts in EHR systems
-
-**Clinical Decision Support** (suggested thresholds - customize based on your ROC/PR curves):
-```
-High Risk (Top 10%):
-├── P(severe_aki) > [threshold] → Nephrology consult, intensify monitoring
-├── P(mortality) > [threshold] → Goals of care discussion, family meeting
-└── P(prolonged_icu) > [threshold] → Early mobilization, discharge planning
-
-Medium Risk (Next 20%):
-├── Enhanced surveillance
-└── Avoid nephrotoxins, optimize hemodynamics
-
-Low Risk (Bottom 70%):
-└── Standard care protocols
-```
-
-**Resource Allocation**:
-- Predict dialysis need → Equipment/staffing preparation
-- Predict prolonged ICU → Bed management, capacity planning
-- Risk-stratified monitoring intensity → Cost-effective care
-
----
-
 ## ⚠️ Limitations
 
-### Data-Related
-1. **Single-center**: MIMIC-IV is from Beth Israel Deaconess Medical Center; generalizability uncertain
-2. **Retrospective**: Cannot establish causality; unmeasured confounding possible
-3. **Missing data**: 30-50% missingness for some labs (lactate, ABG, bilirubin)
-4. **Measurement bias**: Lab ordering reflects clinical suspicion → sicker patients have more data
-
-### Methodological
-5. **Temporal simplification**: 24-hour windows aggregate time-varying physiology
-6. **Feature selection**: No formal feature selection beyond variance/correlation filters
-7. **Class imbalance**: Mortality relatively rare (~12-15%) → lower positive predictive value
-8. **Cluster validation**: No external cohort validation of phenotypes
-
-### Clinical
-9. **Outcome timing**: Hospital mortality may miss post-discharge deaths
-10. **AKI definition**: KDIGO creatinine-based only (no urine output criteria)
-11. **Baseline creatinine**: Uses first ICU measurement, may miss pre-admission AKI
+1. **Single-center data**: MIMIC-IV is from one hospital; results may not generalize to other settings
+2. **Retrospective design**: Cannot prove causation, only associations
+3. **Missing data**: Some labs have 30-50% missingness (lactate, ABG, bilirubin)
+4. **Time windows**: 24-hour aggregation loses temporal dynamics
+5. **Class imbalance**: Rare outcomes (mortality ~12-15%) harder to predict accurately
+6. **No external validation**: Clusters and models not tested on independent datasets
 
 ---
 
-## 🔮 Future Directions
+## 🔬 Future Directions
 
-### Methodological Enhancements
-1. **Temporal modeling**: LSTM/Transformer networks to capture physiologic trajectories over time
-2. **Causal inference**: Propensity score matching, instrumental variables for treatment effects
-3. **Survival analysis**: Time-to-event modeling with competing risks (discharge vs. death)
-4. **Uncertainty quantification**: Conformal prediction for reliable confidence intervals
-5. **Feature selection**: Recursive feature elimination, LASSO for dimensionality reduction
-
-### Clinical Translation
-6. **External validation**: 
-   - Test on eICU Collaborative Research Database
-   - Validate on MIMIC-III for temporal consistency
-   - Partner with institutions for site-specific validation
-7. **Prospective validation**: Silent mode deployment, alert fatigue assessment
-8. **Decision support integration**: HL7 FHIR-compatible API for EHR embedding
-9. **Fairness audit**:
+1. **External validation**: Test on eICU or other ICU databases
+2. **Temporal modeling**: Use time-series methods (LSTM) to capture trends over time
+3. **Prospective study**: Deploy models in real ICU settings to assess clinical utility
+4. **Feature engineering**: Add interaction terms, polynomial features for non-linear relationships
+5. **Ensemble methods**: Combine multiple models for improved predictions
+6. **Fairness analysis**: Evaluate model performance across different patient subgroups (age, race, sex)
