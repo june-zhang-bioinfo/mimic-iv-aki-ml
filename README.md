@@ -52,8 +52,8 @@ joblib >= 1.1.0
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/mimic-aki-phenotypes.git
-cd mimic-aki-phenotypes
+git clone https://github.com/june-zhang-bioinfo/mimic-iv-aki-ml.git
+cd mimic-iv-aki-ml
 
 # Create virtual environment
 python3 -m venv aki_env
